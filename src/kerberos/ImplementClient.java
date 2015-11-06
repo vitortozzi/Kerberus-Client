@@ -5,10 +5,22 @@
  */
 package kerberos;
 
+import java.io.IOException;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.Random;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.crypto.NoSuchPaddingException;
 import message.ASRequest;
+import message.ASResponse;
+import utils.FileUtils;
+import utils.RandomUtils;
+import utils.TimeUtils;
 
 /**
  *
@@ -17,7 +29,7 @@ import message.ASRequest;
 public class ImplementClient extends javax.swing.JFrame {
 
     InterfaceAS interfaceAS;
-    
+
     /**
      * Creates new form ImplementClient
      */
@@ -105,13 +117,50 @@ public class ImplementClient extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        
+
         String user = tUser.getText();
         String senha = tSenha.getPassword().toString();
-        Random randomNumber = new Random();
-        int random = randomNumber.nextInt(500);
+        senha = "vitor123";
+        int random = RandomUtils.getRandom(10000);
+        Date date = TimeUtils.getDate();
+        Date timestamp = TimeUtils.addHours(date, 4);
+
+        ASRequest aSRequest = new ASRequest("cliente", "tgs", timestamp, String.valueOf(random));
+
+        aSRequest.print();
+
+        /**
+         * Envia a mensagem criptografada para o diretório do AS
+         */
+        String location = "F:\\Kerberos\\AS\\clientRequest.des";
+        try {
+            FileUtils fileUtils = new FileUtils(senha);
+            fileUtils.writeEncryptedObject(aSRequest.clientRequest, location);
+        } catch (InvalidKeyException ex) {
+            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InvalidKeySpecException ex) {
+            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchPaddingException ex) {
+            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
-//        ASRequest asRequest = new ASRequest("user", "tgs", "100000", String.valueOf(random));
+        
+        
+        /**
+         * Retorno do AS
+         */
+        try {
+            ASResponse aSResponse = interfaceAS.doLogin(aSRequest);
+            if(aSResponse!=null){
+                aSResponse.print();
+            }
+        } catch (RemoteException ex) {
+            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
@@ -147,7 +196,7 @@ public class ImplementClient extends javax.swing.JFrame {
                 new ImplementClient().setVisible(true);
             }
         });
-        
+
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
