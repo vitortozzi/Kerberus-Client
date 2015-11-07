@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.JOptionPane;
 import message.ASAckResponse;
 import message.ASRequest;
 import message.ASResponse;
@@ -34,6 +35,7 @@ public class ImplementClient extends javax.swing.JFrame {
 
     InterfaceAS interfaceAS;
     InterfaceTGS interfaceTGS;
+    InterfaceServer interfaceServer;
 
     String senha = "vitor123";
     String sessionKey;
@@ -217,6 +219,8 @@ public class ImplementClient extends javax.swing.JFrame {
         TGSResponse tGSResponse = (TGSResponse) fileUtils.readEncryptedObject(clientTGSResponseFilepath);
         System.out.println("***Passo4: Cliente lê o que recebeu do TGS");
         tGSResponse.print();
+        
+        sendTicketToServer();
     }
 
     /**
@@ -267,19 +271,34 @@ public class ImplementClient extends javax.swing.JFrame {
     private void initClient() {
         int portAS = 9898;
         int portTGS = 9797;
+        int portServer = 9696;
 
         try {
             // Localiza registro através do IP do servidor e porta
             Registry registryAS = LocateRegistry.getRegistry("localhost", portAS);
             Registry registryTGS = LocateRegistry.getRegistry("localhost", portTGS);
+            Registry registryServer = LocateRegistry.getRegistry("localhost",portServer);
             // Localiza através da tag informada
             interfaceAS = (InterfaceAS) registryAS.lookup("HelloServer");
             interfaceTGS = (InterfaceTGS) registryTGS.lookup("HelloServer");
+            interfaceServer = (InterfaceServer) registryServer.lookup("HelloServer");
             // Apenas para testes - Servidor manda uma saudação
             System.out.println(interfaceAS.sayHello());
             System.out.println(interfaceTGS.sayHello());
+            System.out.println(interfaceServer.sayHello());
         } catch (Exception e) {
             System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    private void sendTicketToServer() throws RemoteException {
+        
+        String filepath = "F:\\Kerberos\\Client\\serverTicket.des";
+        if(interfaceServer.authenticate(filepath)){
+            JOptionPane.showMessageDialog(rootPane, "Autenticação realizada com sucesso!");
+        }
+        else{
+            JOptionPane.showMessageDialog(rootPane, "Houve um erro na autentiucação");
         }
     }
 }
