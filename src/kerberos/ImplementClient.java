@@ -20,6 +20,8 @@ import javax.crypto.NoSuchPaddingException;
 import message.ASAckResponse;
 import message.ASRequest;
 import message.ASResponse;
+import message.TGSRequest;
+import message.TGSResponse;
 import utils.FileUtils;
 import utils.RandomUtils;
 import utils.TimeUtils;
@@ -31,8 +33,11 @@ import utils.TimeUtils;
 public class ImplementClient extends javax.swing.JFrame {
 
     InterfaceAS interfaceAS;
-    
+    InterfaceTGS interfaceTGS;
+
     String senha = "vitor123";
+    String sessionKey;
+    String clientID = "cliente";
 
     /**
      * Creates new form ImplementClient
@@ -150,7 +155,7 @@ public class ImplementClient extends javax.swing.JFrame {
         } catch (IOException ex) {
             Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
         }
-         
+
         /**
          * Retorno do AS
          */
@@ -174,22 +179,46 @@ public class ImplementClient extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    public void checkASResponse() throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IOException, FileNotFoundException, ClassNotFoundException{
-        
+    public void checkASResponse() throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IOException, FileNotFoundException, ClassNotFoundException {
+
         FileUtils fileUtils = new FileUtils(senha);
-        
+
         String clientACKFilepath = "F:\\Kerberos\\Client\\ack.des";
         ASAckResponse ackResponse = (ASAckResponse) fileUtils.readEncryptedObject(clientACKFilepath);
-        
+
         System.out.println("***Passo 2***: ACK recebida pelo cliente");
         ackResponse.print();
+
+        /**
+         * Envia a requisição para o TGS cifrado com a chave da sessão
+         */
+        this.sessionKey = ackResponse.sessionKey;
+        Date timestamp = TimeUtils.addHours(TimeUtils.getDate(), 8);
+        String randomNumber = String.valueOf(RandomUtils.getRandom(10000));
+        TGSRequest tgsr = new TGSRequest(clientID, "servidor", timestamp, randomNumber);
+
+        String tgsRequestFilepath = "F:\\Kerberos\\TGS\\clientRequest.des";
+
+        fileUtils = new FileUtils(sessionKey);
+        fileUtils.writeEncryptedObject(tgsr, tgsRequestFilepath);
+
+        /**
+         * Faz com que o TGS valide o ticket, para então o TGS desencriptar o
+         * pedido do cliente
+         */
+        String clientTicketFilepath = "F:\\Kerberos\\Client\\tgs_ticket.des";
+        interfaceTGS.readTicketFromClient(clientTicketFilepath);
+
+        /**
+         * Realiza leitura de retorno do TGS
+         */
         
-        //TODO enviar ticket pro TGS
-        
-        
-       
+        String clientTGSResponseFilepath = "F:\\Kerberos\\Client\\tgsResponse.des";
+        TGSResponse tGSResponse = (TGSResponse) fileUtils.readEncryptedObject(clientTGSResponseFilepath);
+        System.out.println("***Passo4: Cliente lê o que recebeu do TGS");
+        tGSResponse.print();
     }
-    
+
     /**
      * @param args the command line arguments
      */
@@ -236,14 +265,19 @@ public class ImplementClient extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 
     private void initClient() {
-        int port = 9898;
+        int portAS = 9898;
+        int portTGS = 9797;
+
         try {
             // Localiza registro através do IP do servidor e porta
-            Registry registry = LocateRegistry.getRegistry("localhost", port);
+            Registry registryAS = LocateRegistry.getRegistry("localhost", portAS);
+            Registry registryTGS = LocateRegistry.getRegistry("localhost", portTGS);
             // Localiza através da tag informada
-            interfaceAS = (InterfaceAS) registry.lookup("HelloServer");
+            interfaceAS = (InterfaceAS) registryAS.lookup("HelloServer");
+            interfaceTGS = (InterfaceTGS) registryTGS.lookup("HelloServer");
             // Apenas para testes - Servidor manda uma saudação
             System.out.println(interfaceAS.sayHello());
+            System.out.println(interfaceTGS.sayHello());
         } catch (Exception e) {
             System.out.println("Erro: " + e.getMessage());
         }
