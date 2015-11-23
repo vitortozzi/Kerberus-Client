@@ -37,7 +37,7 @@ public class ImplementClient extends javax.swing.JFrame {
     InterfaceTGS interfaceTGS;
     InterfaceServer interfaceServer;
 
-    String senha = "vitor123";
+    String senha;
     String sessionKey;
     String clientID = "cliente";
 
@@ -132,6 +132,7 @@ public class ImplementClient extends javax.swing.JFrame {
         String user = tUser.getText();
         int random = RandomUtils.getRandom(10000);
         Date date = TimeUtils.getDate();
+        // Requisição com validade de 4 horas
         Date timestamp = TimeUtils.addHours(date, 4);
 
         ASRequest aSRequest = new ASRequest("cliente", "tgs", timestamp, String.valueOf(random));
@@ -142,7 +143,7 @@ public class ImplementClient extends javax.swing.JFrame {
         /**
          * Envia a mensagem criptografada para o diretório do AS
          */
-        String location = "F:\\Kerberos\\AS\\clientRequest.des";
+        String location = "C:\\Kerberos\\AS\\clientRequest.des";
         try {
             FileUtils fileUtils = new FileUtils(senha);
             fileUtils.writeEncryptedObject(aSRequest.clientRequest, location);
@@ -185,7 +186,7 @@ public class ImplementClient extends javax.swing.JFrame {
 
         FileUtils fileUtils = new FileUtils(senha);
 
-        String clientACKFilepath = "F:\\Kerberos\\Client\\ack.des";
+        String clientACKFilepath = "C:\\Kerberos\\Client\\ack.des";
         ASAckResponse ackResponse = (ASAckResponse) fileUtils.readEncryptedObject(clientACKFilepath);
 
         System.out.println("***Passo 2***: ACK recebida pelo cliente");
@@ -195,11 +196,13 @@ public class ImplementClient extends javax.swing.JFrame {
          * Envia a requisição para o TGS cifrado com a chave da sessão
          */
         this.sessionKey = ackResponse.sessionKey;
+        
+        // Timestamp de 8 horas
         Date timestamp = TimeUtils.addHours(TimeUtils.getDate(), 8);
         String randomNumber = String.valueOf(RandomUtils.getRandom(10000));
         TGSRequest tgsr = new TGSRequest(clientID, "servidor", timestamp, randomNumber);
 
-        String tgsRequestFilepath = "F:\\Kerberos\\TGS\\clientRequest.des";
+        String tgsRequestFilepath = "C:\\Kerberos\\TGS\\clientRequest.des";
 
         fileUtils = new FileUtils(sessionKey);
         fileUtils.writeEncryptedObject(tgsr, tgsRequestFilepath);
@@ -208,14 +211,14 @@ public class ImplementClient extends javax.swing.JFrame {
          * Faz com que o TGS valide o ticket, para então o TGS desencriptar o
          * pedido do cliente
          */
-        String clientTicketFilepath = "F:\\Kerberos\\Client\\tgs_ticket.des";
+        String clientTicketFilepath = "C:\\Kerberos\\Client\\tgs_ticket.des";
         interfaceTGS.readTicketFromClient(clientTicketFilepath);
 
         /**
          * Realiza leitura de retorno do TGS
          */
         
-        String clientTGSResponseFilepath = "F:\\Kerberos\\Client\\tgsResponse.des";
+        String clientTGSResponseFilepath = "C:\\Kerberos\\Client\\tgsResponse.des";
         TGSResponse tGSResponse = (TGSResponse) fileUtils.readEncryptedObject(clientTGSResponseFilepath);
         System.out.println("***Passo4: Cliente lê o que recebeu do TGS");
         tGSResponse.print();
@@ -293,7 +296,7 @@ public class ImplementClient extends javax.swing.JFrame {
 
     private void sendTicketToServer() throws RemoteException {
         
-        String filepath = "F:\\Kerberos\\Client\\serverTicket.des";
+        String filepath = "C:\\Kerberos\\Client\\serverTicket.des";
         if(interfaceServer.authenticate(filepath)){
             JOptionPane.showMessageDialog(rootPane, "Autenticação realizada com sucesso!");
         }
