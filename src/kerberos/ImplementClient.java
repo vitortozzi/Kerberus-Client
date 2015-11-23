@@ -130,55 +130,60 @@ public class ImplementClient extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 
         String user = tUser.getText();
-        int random = RandomUtils.getRandom(10000);
-        Date date = TimeUtils.getDate();
-        // Requisição com validade de 4 horas
-        Date timestamp = TimeUtils.addHours(date, 4);
+        senha = tSenha.getText();
+        if (senha.equals("") || user.equals("")) {
+            JOptionPane.showMessageDialog(rootPane, "Por favor, informe o usuário e senha.");
+        } else {
+            int random = RandomUtils.getRandom(10000);
+            Date date = TimeUtils.getDate();
+            // Requisição com validade de 4 horas
+            Date timestamp = TimeUtils.addHours(date, 4);
 
-        ASRequest aSRequest = new ASRequest("cliente", "tgs", timestamp, String.valueOf(random));
+            ASRequest aSRequest = new ASRequest("cliente", "tgs", timestamp, String.valueOf(random));
 
-        System.out.println("***Passo 1***: Requisição do cliente");
-        aSRequest.print();
+            System.out.println("***Passo 1***: Requisição do cliente");
+            aSRequest.print();
 
-        /**
-         * Envia a mensagem criptografada para o diretório do AS
-         */
-        String location = "C:\\Kerberos\\AS\\clientRequest.des";
-        try {
-            FileUtils fileUtils = new FileUtils(senha);
-            fileUtils.writeEncryptedObject(aSRequest.clientRequest, location);
-        } catch (InvalidKeyException ex) {
-            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidKeySpecException ex) {
-            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchPaddingException ex) {
-            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
-        }
+            /**
+             * Envia a mensagem criptografada para o diretório do AS
+             */
+            String location = "F:\\Kerberos\\AS\\clientRequest.des";
+            try {
+                FileUtils fileUtils = new FileUtils(senha);
+                fileUtils.writeEncryptedObject(aSRequest.clientRequest, location);
+            } catch (InvalidKeyException ex) {
+                Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NoSuchAlgorithmException ex) {
+                Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvalidKeySpecException ex) {
+                Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NoSuchPaddingException ex) {
+                Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
-        /**
-         * Retorno do AS
-         */
-        try {
-            interfaceAS.doLogin(aSRequest);
-            checkASResponse();
-        } catch (RemoteException ex) {
-            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidKeyException ex) {
-            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvalidKeySpecException ex) {
-            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchPaddingException ex) {
-            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+            /**
+             * Retorno do AS
+             */
+            try {
+                interfaceAS.doLogin(aSRequest);
+                checkASResponse();
+            } catch (RemoteException ex) {
+                Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvalidKeyException ex) {
+                Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NoSuchAlgorithmException ex) {
+                Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvalidKeySpecException ex) {
+                Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NoSuchPaddingException ex) {
+                Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -186,7 +191,7 @@ public class ImplementClient extends javax.swing.JFrame {
 
         FileUtils fileUtils = new FileUtils(senha);
 
-        String clientACKFilepath = "C:\\Kerberos\\Client\\ack.des";
+        String clientACKFilepath = "F:\\Kerberos\\Client\\ack.des";
         ASAckResponse ackResponse = (ASAckResponse) fileUtils.readEncryptedObject(clientACKFilepath);
 
         System.out.println("***Passo 2***: ACK recebida pelo cliente");
@@ -196,13 +201,13 @@ public class ImplementClient extends javax.swing.JFrame {
          * Envia a requisição para o TGS cifrado com a chave da sessão
          */
         this.sessionKey = ackResponse.sessionKey;
-        
+
         // Timestamp de 8 horas
         Date timestamp = TimeUtils.addHours(TimeUtils.getDate(), 8);
         String randomNumber = String.valueOf(RandomUtils.getRandom(10000));
         TGSRequest tgsr = new TGSRequest(clientID, "servidor", timestamp, randomNumber);
 
-        String tgsRequestFilepath = "C:\\Kerberos\\TGS\\clientRequest.des";
+        String tgsRequestFilepath = "F:\\Kerberos\\TGS\\clientRequest.des";
 
         fileUtils = new FileUtils(sessionKey);
         fileUtils.writeEncryptedObject(tgsr, tgsRequestFilepath);
@@ -211,18 +216,17 @@ public class ImplementClient extends javax.swing.JFrame {
          * Faz com que o TGS valide o ticket, para então o TGS desencriptar o
          * pedido do cliente
          */
-        String clientTicketFilepath = "C:\\Kerberos\\Client\\tgs_ticket.des";
+        String clientTicketFilepath = "F:\\Kerberos\\Client\\tgs_ticket.des";
         interfaceTGS.readTicketFromClient(clientTicketFilepath);
 
         /**
          * Realiza leitura de retorno do TGS
          */
-        
-        String clientTGSResponseFilepath = "C:\\Kerberos\\Client\\tgsResponse.des";
+        String clientTGSResponseFilepath = "F:\\Kerberos\\Client\\tgsResponse.des";
         TGSResponse tGSResponse = (TGSResponse) fileUtils.readEncryptedObject(clientTGSResponseFilepath);
         System.out.println("***Passo4: Cliente lê o que recebeu do TGS");
         tGSResponse.print();
-        
+
         sendTicketToServer();
     }
 
@@ -280,7 +284,7 @@ public class ImplementClient extends javax.swing.JFrame {
             // Localiza registro através do IP do servidor e porta
             Registry registryAS = LocateRegistry.getRegistry("localhost", portAS);
             Registry registryTGS = LocateRegistry.getRegistry("localhost", portTGS);
-            Registry registryServer = LocateRegistry.getRegistry("localhost",portServer);
+            Registry registryServer = LocateRegistry.getRegistry("localhost", portServer);
             // Localiza através da tag informada
             interfaceAS = (InterfaceAS) registryAS.lookup("HelloServer");
             interfaceTGS = (InterfaceTGS) registryTGS.lookup("HelloServer");
@@ -295,12 +299,11 @@ public class ImplementClient extends javax.swing.JFrame {
     }
 
     private void sendTicketToServer() throws RemoteException {
-        
-        String filepath = "C:\\Kerberos\\Client\\serverTicket.des";
-        if(interfaceServer.authenticate(filepath)){
+
+        String filepath = "F:\\Kerberos\\Client\\serverTicket.des";
+        if (interfaceServer.authenticate(filepath)) {
             JOptionPane.showMessageDialog(rootPane, "Autenticação realizada com sucesso!");
-        }
-        else{
+        } else {
             JOptionPane.showMessageDialog(rootPane, "Houve um erro na autentiucação");
         }
     }
