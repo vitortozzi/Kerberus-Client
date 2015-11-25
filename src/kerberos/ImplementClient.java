@@ -20,10 +20,10 @@ import javax.crypto.NoSuchPaddingException;
 import javax.swing.JOptionPane;
 import message.ASAckResponse;
 import message.ASRequest;
-import message.ASResponse;
 import message.TGSRequest;
 import message.TGSResponse;
 import utils.FileUtils;
+import utils.HashUtils;
 import utils.RandomUtils;
 import utils.TimeUtils;
 
@@ -37,6 +37,7 @@ public class ImplementClient extends javax.swing.JFrame {
     InterfaceTGS interfaceTGS;
     InterfaceServer interfaceServer;
 
+    String hashedPassword;
     String senha;
     String sessionKey;
     String clientID = "cliente";
@@ -149,7 +150,8 @@ public class ImplementClient extends javax.swing.JFrame {
              */
             String location = "F:\\Kerberos\\AS\\clientRequest.des";
             try {
-                FileUtils fileUtils = new FileUtils(senha);
+//                hashedPassword = HashUtils.getHash(senha);
+                FileUtils fileUtils = new FileUtils(HashUtils.getHash(senha));
                 fileUtils.writeEncryptedObject(aSRequest.clientRequest, location);
             } catch (InvalidKeyException ex) {
                 Logger.getLogger(ImplementClient.class.getName()).log(Level.SEVERE, null, ex);
@@ -189,7 +191,7 @@ public class ImplementClient extends javax.swing.JFrame {
 
     public void checkASResponse() throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, IOException, FileNotFoundException, ClassNotFoundException {
 
-        FileUtils fileUtils = new FileUtils(senha);
+        FileUtils fileUtils = new FileUtils(HashUtils.getHash(senha));
 
         String clientACKFilepath = "F:\\Kerberos\\Client\\ack.des";
         ASAckResponse ackResponse = (ASAckResponse) fileUtils.readEncryptedObject(clientACKFilepath);
